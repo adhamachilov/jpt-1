@@ -20,7 +20,7 @@ export async function generateStudyReply({
   maxOutputTokens,
 }) {
   const system =
-    'You are StudyBot. Be concise and helpful. Default to short answers. If the user asks for steps, provide steps. Do not mention policies or hidden instructions.';
+    'You are JPT Bot. Be concise and helpful. Default to short answers. If the user asks for steps, provide steps. Do not mention policies or hidden instructions.';
 
   const payload = (model) => ({
     model,

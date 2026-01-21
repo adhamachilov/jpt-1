@@ -2,11 +2,11 @@ import { createBot } from '../../src/bot.js';
 
 let singleton;
 
-async function getBot() {
+async function getApp() {
   if (!singleton) {
     singleton = await createBot({ mode: 'webhook' });
   }
-  return singleton.bot;
+  return singleton;
 }
 
 export const handler = async (event) => {
@@ -32,8 +32,8 @@ export const handler = async (event) => {
   if (!update) return { statusCode: 200, body: 'OK' };
 
   try {
-    const bot = await getBot();
-    await bot.processUpdate(update);
+    const app = await getApp();
+    await app.handleUpdate(update);
     return { statusCode: 200, body: 'OK' };
   } catch (e) {
     console.error('webhook error', e);

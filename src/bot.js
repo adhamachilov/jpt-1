@@ -64,7 +64,7 @@ export async function createBot({ mode }) {
 
   function formatStart({ userId, approved }) {
     return [
-      '👋 Welcome to StudyBot',
+      '👋 Welcome to JPT Bot',
       '',
       `Your User ID: ${userId}`,
       '',
@@ -160,15 +160,15 @@ export async function createBot({ mode }) {
     };
   }
 
-  bot.onText(/^(\/start)(\s.*)?$/i, async (msg) => {
+  async function onStart(msg) {
     const userId = msg.from?.id;
     if (!userId) return;
 
     const { approved } = await getStatus(userId);
     await bot.sendMessage(msg.chat.id, formatStart({ userId, approved }));
-  });
+  }
 
-  bot.onText(/^(\/status)(\s.*)?$/i, async (msg) => {
+  async function onStatus(msg) {
     const userId = msg.from?.id;
     if (!userId) return;
 
@@ -176,9 +176,9 @@ export async function createBot({ mode }) {
     const preferred = await store.getPreferredPrimaryModel();
     const modelHint = `${preferred === 'deepseek' ? 'DeepSeek' : 'Groq'} (fallback enabled)`;
     await bot.sendMessage(msg.chat.id, formatStatus({ userId, approved, role, modelHint }));
-  });
+  }
 
-  bot.onText(/^(\/admin)(\s.*)?$/i, async (msg) => {
+  async function onAdmin(msg) {
     const userId = msg.from?.id;
     if (!userId) return;
 
@@ -282,9 +282,9 @@ export async function createBot({ mode }) {
     }
 
     await bot.sendMessage(msg.chat.id, formatAdminHelp());
-  });
+  }
 
-  bot.on('callback_query', async (q) => {
+  async function onCallbackQuery(q) {
     const userId = q.from?.id;
     const chatId = q.message?.chat?.id;
     const data = q.data;
@@ -374,9 +374,9 @@ export async function createBot({ mode }) {
     }
 
     await answer('Unknown action');
-  });
+  }
 
-  bot.on('message', async (msg) => {
+  async function onMessage(msg) {
     const userId = msg.from?.id;
     if (!userId) return;
 
@@ -483,7 +483,38 @@ export async function createBot({ mode }) {
       console.error('LLM error', e);
       await bot.sendMessage(msg.chat.id, '⚠️ Something went wrong. Try again in a moment.');
     }
-  });
+  }
 
-  return { bot };
+  bot.onText(/^(\/start)(\s.*)?$/i, onStart);
+  bot.onText(/^(\/status)(\s.*)?$/i, onStatus);
+  bot.onText(/^(\/admin)(\s.*)?$/i, onAdmin);
+  bot.on('callback_query', onCallbackQuery);
+  bot.on('message', onMessage);
+
+  async function handleUpdate(update) {
+    if (!update || typeof update !== 'object') return;
+    if (update.callback_query) {
+      await onCallbackQuery(update.callback_query);
+      return;
+    }
+    if (update.message) {
+      const text = String(update.message.text || '').trim();
+      if (/^\/start(\s|$)/i.test(text)) {
+        await onStart(update.message);
+        return;
+      }
+      if (/^\/status(\s|$)/i.test(text)) {
+        await onStatus(update.message);
+        return;
+      }
+      if (/^\/admin(\s|$)/i.test(text)) {
+        await onAdmin(update.message);
+        return;
+      }
+
+      await onMessage(update.message);
+    }
+  }
+
+  return { bot, handleUpdate };
 }
