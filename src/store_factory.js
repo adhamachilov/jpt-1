@@ -18,7 +18,11 @@ export async function createStoreFromEnv(env) {
       await store.init();
       return store;
     } catch (e) {
-      console.error('BlobsStore init failed, falling back to /tmp JsonStore', e);
+      if (e?.name === 'MissingBlobsEnvironmentError') {
+        console.warn('Netlify Blobs not configured; falling back to /tmp JsonStore');
+      } else {
+        console.error('BlobsStore init failed, falling back to /tmp JsonStore', e);
+      }
       const storePath = env.STORE_PATH || path.join('/tmp', 'state.json');
       const store = new JsonStore(storePath);
       await store.init();

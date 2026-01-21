@@ -33,7 +33,7 @@ export const handler = async (event) => {
 
   try {
     const bot = await getBot();
-    bot.processUpdate(update);
+    await bot.processUpdate(update);
     return { statusCode: 200, body: 'OK' };
   } catch (e) {
     console.error('webhook error', e);

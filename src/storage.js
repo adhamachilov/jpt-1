@@ -34,8 +34,19 @@ export class JsonStore {
   }
 
   async read() {
-    const raw = await fs.readFile(this.filePath, 'utf8');
-    const parsed = JSON.parse(raw);
+    let raw;
+    let parsed;
+    try {
+      raw = await fs.readFile(this.filePath, 'utf8');
+      parsed = raw ? JSON.parse(raw) : null;
+    } catch {
+      parsed = null;
+    }
+
+    if (!parsed) {
+      await this.write(DEFAULT_STATE);
+      parsed = DEFAULT_STATE;
+    }
     return {
       approved_users: Array.isArray(parsed?.approved_users) ? parsed.approved_users : [],
       known_chats: Array.isArray(parsed?.known_chats) ? parsed.known_chats : [],
