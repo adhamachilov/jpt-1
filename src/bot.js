@@ -53,7 +53,7 @@ export async function createBot({ mode }) {
   }
 
   async function getStatus(userId) {
-    const approved = (await store.isApproved(userId)) || isAdmin(userId);
+    const approved = true;
     const role = isAdmin(userId) ? 'admin' : 'user';
     return { approved, role };
   }
@@ -68,8 +68,8 @@ export async function createBot({ mode }) {
       '',
       `Your User ID: ${userId}`,
       '',
-      `Status: ${approved ? '✅ Approved' : '❌ Not approved'}`,
-      approved ? 'You can start chatting.' : 'Ask the admin to approve you.',
+      'Status: ✅ Active',
+      'You can start chatting.',
     ].join('\n');
   }
 
@@ -80,7 +80,7 @@ export async function createBot({ mode }) {
   function formatStatus({ userId, approved, role, modelHint }) {
     return [
       `Your User ID: ${userId}`,
-      `Approval: ${approved ? '✅ Approved' : '❌ Not approved'}`,
+      'Access: ✅ Open',
       `Role: ${role}`,
       `Model: ${modelHint}`,
     ].join('\n');
@@ -436,11 +436,7 @@ export async function createBot({ mode }) {
       }
     }
 
-    const { approved } = await getStatus(userId);
-    if (!approved) {
-      await bot.sendMessage(msg.chat.id, formatDenied(userId));
-      return;
-    }
+    await getStatus(userId);
 
     const maxChars = Number(env.MAX_INPUT_CHARS || 4000);
     const safeText = trimToMaxChars(text, maxChars);
